@@ -1,0 +1,44 @@
+REGEDIT4
+
+[HKEY_CURRENT_USER\Software\Microsoft\DevStudio\6.0\Format\Output Window]
+"FontFace"="Courier"
+"FontSize"=dword:0000000c
+"Text"=hex:00,00,00,00,ff,ff,ff,00,15,00,15,00
+"Text Selection"=hex:ff,ff,ff,00,00,00,00,00,19,00,19,00
+"Current Error/Tag"=hex:ff,ff,ff,00,00,00,80,00,55,00,55,00
+"Bookmark"=hex:00,00,00,00,00,ff,ff,00,10,00,10,00
+
+[HKEY_CURRENT_USER\Software\Microsoft\DevStudio\6.0\Format\Source Browser]
+"FontFace"="MS Sans Serif"
+"FontSize"=dword:0000000a
+"Text"=hex:00,00,00,00,ff,ff,ff,00,15,00,15,00
+"Text Selection"=hex:ff,ff,ff,00,00,00,00,00,19,00,19,00
+
+[HKEY_CURRENT_USER\Software\Microsoft\DevStudio\6.0\Format\Source Window]
+"FontFace"="Courier New Cyr"
+"FontSize"=dword:0000000c
+"Text"=hex:00,00,00,00,ff,ff,ff,00,13,01,b3,00
+"Text Selection"=hex:ff,ff,ff,00,00,00,00,00,19,00,19,00
+"Current Error/Tag"=hex:ff,ff,ff,00,00,00,80,00,d2,01,b2,01
+"Bookmark"=hex:00,00,00,00,00,ff,ff,00,10,00,10,00
+"Breakpoint"=hex:ff,ff,ff,00,80,00,00,00,10,00,10,00
+"Current Statement"=hex:00,00,00,00,ff,ff,00,00,70,00,70,00
+"Selection Margin"=hex:d4,d0,c8,00,d4,d0,c8,00,13,00,13,00
+"Keyword"=hex:00,00,ff,00,ff,ff,ff,00,10,00,11,00
+"Comment"=hex:c0,c0,c0,00,ff,ff,ff,00,10,00,11,00
+"Number"=hex:00,80,80,00,ff,ff,ff,00,10,00,11,00
+"String"=hex:ff,00,ff,00,ff,ff,ff,00,10,00,11,00
+"Operator"=hex:00,80,00,00,ff,ff,ff,00,10,00,11,00
+"Wizard IDL/ODL Code"=hex:80,80,80,00,ff,ff,ff,00,14,00,15,00
+"HTML Element Name"=hex:80,00,80,00,ff,ff,ff,00,14,00,15,00
+"HTML Attribute Name"=hex:ff,00,00,00,ff,ff,ff,00,14,00,15,00
+"HTML Attribute Value"=hex:00,00,ff,00,ff,ff,ff,00,14,00,15,00
+"HTML Comment"=hex:00,80,00,00,ff,ff,ff,00,14,00,15,00
+"HTML Entity"=hex:ff,00,00,00,ff,ff,ff,00,14,00,15,00
+"HTML Tag Delimiter"=hex:00,00,ff,00,ff,ff,ff,00,14,00,15,00
+"HTML String"=hex:00,00,ff,00,ff,ff,ff,00,14,00,15,00
+"HTML Tag Text"=hex:ff,00,ff,00,ff,ff,ff,00,14,00,15,00
+"HTML Operator"=hex:00,00,ff,00,ff,ff,ff,00,14,00,15,00
+"HTML Server-Side Script"=hex:00,00,00,00,ff,ff,00,00,14,00,14,00
+"Wizard Code"=hex:80,80,80,00,ff,ff,ff,00,14,00,15,00
+"User Defined Keywords"=hex:00,80,00,00,ff,ff,ff,00,14,00,15,00

@@ -1,0 +1,17 @@
+[web]
+style = gitweb
+allow_archive = bz2 gz zip
+push_ssl = false
+allow_push=*
+
+
+[tortoisehg]
+logtbarstyle = theme
+
+[extensions]                                                                                                                                                               
+hgext.keyword =                                                                                                                                                            
+hgext.hgk =                                                                                                                                                                
+[keyword]                                                                                                                                                                  
+** =                                                                                                                                                                       
+[keywordmaps]                                                                                                                                                              
+Id = {file|basename}, v {rev} {date|isodatesec} {author|user}

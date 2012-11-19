@@ -1,0 +1,87 @@
+#
+# Backup  CRONTAB FILE 
+#
+# Classic crontab format:
+# Minutes Hours Days Months WeekDays Years Command
+
+SET dBackUp="d:\#Install\!backup"
+
+
+#  Fri 27 Jan 18:34:55 2006
+#( backup-daily
+\ Архивация в стек. Ежедневно. Глубина - 3.
+
+: fBackUp S" %dBackUp%\doc%YY%%MM%" EVAL-SUBST ;
+: fExclList S" %dBackUp%\exlude.txt" EVAL-SUBST ;
+: fBackUpList S" d:\tmp\dta\backup.ini" EVAL-SUBST ;
+OnceADay
+
+Action:
+
+	PAUSE: 5000
+	FILE-DELETE: "%fBackUp%-2.7z"
+	FILE-RENAME: "%fBackUp%-1.7z" "%fBackUp%-2.7z"
+	FILE-COPY:   "%fBackUp%.7z" "%fBackUp%-1.7z"
+	
+        ShowMinimized IdlePriority
+        START-APPW: 7z.exe u -up1q1r2x1y2z1w2 -r -t7z -mx=7 -ms=off %fBackUp%.7z @%fBackUpList% -x!@%fExclList% 
+)#
+
+
+#  Sun 26 Feb 13:24:48 2006
+#( backup-weekly
+\ Архивация в стек. Еженедельно. Глубина - 2
+
+NoActive
+
+: dMail S" c:\tmp\mail" ;
+: fMailBackUp S" %dBackUp%\eml%YY%%MM%" EVAL-SUBST ;
+OnceAWeek
+
+Action:
+
+	PAUSE: 15000
+	FILE-DELETE: "%fMailBackUp%-1.7z"
+	FILE-COPY:   "%fMailBackUp%.7z" "%fMailBackUp%-1.7z"
+	
+        ShowMinimized IdlePriority
+        START-APPW: 7z.exe u -up1q1r2x1y2z1w2 -r -t7z -mx=7 -ms=off %fMailBackUp%.7z %dMail% 
+)#
+
+
+#( backup-reg
+
+NoActive
+
+OnceAMonth
+
+Action:
+	PAUSE: 30000
+        StartIn: "C:\Program Files\ERUNT"
+        START-APP: AUTOBACK.EXE %dBackUp%\reg%YY%%MM%-%hh%%mm% /noconfirmdelete
+)#
+
+
+#( CLASSIC-TASK-#-hot-copy
+\  Горячее копирование файлов из каталога dWorkDB в dTmpDB
+NoActive
+
+: dWorkDB S" c:\tmp\db\sk" EVAL-SUBST ;
+: dTmpDB S" %dBackUp%\sk" EVAL-SUBST ;
+
+Action:
+
+    RECURSIVE
+    FOR-FILES: "%dWorkDB%\*.dbf"
+        FILE-COPY: "%FOUND-FULLPATH%" "%dTmpDB%"
+        LOG: "%dBackUp%\%YY%%MM%backup.log" "%hh%:%mm%:%ss%  Hot-copy: %FOUND-FULLPATH%  exit code: %GetLastError%"
+    ;FOR-FILES
+
+    RECURSIVE
+    FOR-FILES: "%dWorkDB%\1Cv7.?D"
+        FILE-COPY: "%FOUND-FULLPATH%" "%dTmpDB%"
+        LOG: "%dBackUp%\%YY%%MM%backup.log" "%hh%:%mm%:%ss%  Hot-copy: %FOUND-FULLPATH%  exit code: %GetLastError%"
+    ;FOR-FILES
+    BEEP: 250 500
+
+)#

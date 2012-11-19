@@ -1,0 +1,19 @@
+REGEDIT4
+
+[HKEY_CURRENT_USER\Software\Microsoft\DevStudio\6.0\Format]
+
+[HKEY_CURRENT_USER\Software\Microsoft\DevStudio\6.0\Format\Output Window]
+"FontFace"="Courier"
+"FontSize"=dword:0000000c
+
+[HKEY_CURRENT_USER\Software\Microsoft\DevStudio\6.0\Format\Source Browser]
+"FontFace"="Courier"
+"FontSize"=dword:0000000a
+
+[HKEY_CURRENT_USER\Software\Microsoft\DevStudio\6.0\Format\Source Window]
+"FontFace"="Monaco"
+;"FontFace"="Courier"
+;"FontFace"="MS Sans Serif"
+;"FontFace"="Inconsolata"
+"FontSize"=dword:0000000a
+

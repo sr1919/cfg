@@ -1,0 +1,39 @@
+--> If you want to disable any plugin just comment the line
+--> This is a comment
+--> Save this file as UTF-8 if you need to use special characters ºªç
+
+	
+--> Description:
+--> Allow you to rename and change your dropbox folder localization
+--> Require System.Data.SqLite.dll
+
+	$plug = "DropBox 0.8.x.dll";
+
+
+--> Description:
+--> Here you can set your Dropbox Folder name as well as localization
+--> .\ means current directory and is to be used with a portable instalation
+--> %:\ means current drive and is to be used with U3 or any other...
+
+	$path = "c:\doc\DropBox.sr";
+
+
+--> Description:
+--> Auto Install Locally Dropbox Right Click ContextMenu Handlers
+--> Require DropboxExt.13.dll
+
+	$plug = "ShellExt.dll";
+
+
+--> Description:
+--> Prevents Data Loss by killing DropBox.exe if you accidentally unplug your usb drive
+
+--> 	$plug = "UsbGuard.dll";
+
+	
+--> Description:
+--> Process DropBox file version comparasion from Update Directory
+--> If you disable this plugin make sure that dropboxext.13.dll isn't at your Dropbox Bin Dir 
+
+
+	$plug = "Update.dll";

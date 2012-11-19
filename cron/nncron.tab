@@ -1,0 +1,299 @@
+#CRONTAB FILE 
+# Classic crontab format:
+# Minutes Hours Days Months WeekDays Years Command
+
+<%
+fVAR		fPowerMode
+VARIABLE	flSaveMon	\ monitor activity flag
+180 CONSTANT	IdleTime	\ idle time in seconds
+%>
+
+
+#( purge-log
+
+OnceADay
+
+Action:
+\	PURGE-OLD: "c:\program files\metatrader 4\logs\*.log" 14
+\	PURGE-OLD: "c:\program files\metatrader 4\tester\logs\*.log" 14
+\	PURGE-OLD: "c:\program files\metatrader 4\experts\logs\*.log" 7
+\	FILE-CROP: "c:\program files\metatrader 4\logs\metaeditor.log" 128 128
+
+\	log file sessions.log will be cropped down to 1Mb
+\	if it was greater than 2Mb when FILE-CROP was called
+	FILE-CROP: "C:\Program Files\Privoxy\privoxy.log" 2048 1024
+
+	PURGE-OLD: "log\*.log" 7
+	WITHDIRS
+	PURGE-OLD: "c:\tmp\temp\*.*" 7
+	PURGE-OLD: "c:\tmp\Perflib*.*" 7
+	WITHDIRS
+	PURGE-OLDW: "c:\tmp\trash\*.*" 30
+	WITHDIRS
+	PURGE-OLD: "c:\winxp\temp\*.*" 3
+	WITHDIRS
+	PURGE-OLD: "c:\winxp\minidump\*.*" 3
+	WITHDIRS
+	PURGE-OLD: "C:\Documents and Settings\All Users.WINXP\Application Data\Microsoft\Crypto\RSA\S-1-5-18\" 30
+)#
+
+
+#( Chime-new
+
+NoLog
+
+Time: */15 * * * * *
+
+Action:
+    Min@ 0 =
+    IF				\ every hour
+        50 7000 BEEP
+        50 7000 BEEP
+        50 7000 BEEP
+        50 7000 BEEP
+        50 7000 BEEP 
+    ELSE
+        Min@ 30 =
+        IF			\ every 30 minutes
+            50 7000 BEEP 
+            50 7000 BEEP 
+            50 7000 BEEP
+        ELSE			\ on 15 and 45 minutes
+            50 7000 BEEP 
+        THEN
+    THEN
+)#
+
+
+#( System-StartUp
+Time: START-TIME
+Action:
+
+PROC-EXIST: "TypeAndRun.exe" NOT
+IF
+	StartIn: "C:\Program Files\TR"
+	BelowNormalPriority
+	START-APP: TypeAndRun.exe
+THEN
+
+PROC-EXIST: "ps.exe" NOT
+IF
+	StartIn: "C:\Program Files\Punto Switcher"
+	BelowNormalPriority
+	START-APP: ps.exe
+THEN
+)#
+
+
+#( monitor-saving
+NoActive
+
+Rule:
+	IdleTime IDLE DUP 0= IF flSaveMon OFF THEN
+	PROC-EXIST: 7z.exe 0= AND		\ don't turn off the monitor
+	PROC-EXIST: la.exe 0= AND
+	PROC-EXIST: eac.exe 0= AND
+	PROC-EXIST: fxteam.exe 0= AND
+	PROC-EXIST: mp4DVD.exe 0= AND
+	PROC-EXIST: crystal.exe 0= AND
+	PROC-EXIST: utorrent.exe 0= AND
+	PROC-EXIST: mplayerc.exe 0= AND
+	PROC-EXIST: ICEReaderRus.exe 0= AND
+	PROC-EXIST: FoodInXpector.exe 0= AND
+
+	WIN-EXIST: "*FlashGet" 0= AND
+
+	flSaveMon @ 0= AND
+
+Action:
+	BALLOON: "power control" "turn monitor to idle mode"
+	1000 PAUSE					\ wait for 1 sec
+	BEEP: 50 500
+
+	IF 	PROC-EXIST: *.scr
+		PROC-CLOSE: *.scr
+	THEN
+
+	flSaveMon ON				\ sets the activity flag
+	MONITOR-LOW					\ turns the monitor to low power state
+	IdleTime 1000 * PAUSE		\ waits for 2nd interval
+	IdleTime 3 * 2 / IDLE IF MONITOR-OFF THEN	\ turns the monitor off
+)#
+
+#	Wed 14 Jun 23:47:22 2006
+#( on-resume
+WatchResume
+Action:
+	flSaveMon OFF				\ clear activity flag
+)#
+
+
+#( CLASSIC-TASK-#-power-saving
+
+NoActive
+600 CONSTANT SuspTime       \ susp time in seconds
+VARIABLE SavePowFlg         \ activity flag
+
+Rule: 
+	SuspTime IDLE DUP 0= IF SavePowFlg OFF THEN
+	PROC-EXIST: 7z.exe 0= AND
+	PROC-EXIST: la.exe 0= AND
+	PROC-EXIST: eac.exe 0= AND
+	PROC-EXIST: far.exe 0= AND
+	PROC-EXIST: cdex.exe 0= AND
+	PROC-EXIST: fxteam.exe 0= AND
+	PROC-EXIST: firefox.exe 0= AND
+	PROC-EXIST: dfrqntfs.exe 0= AND
+	PROC-EXIST: mplayerc.exe 0= AND
+	PROC-EXIST: icereaderrus.exe 0= AND
+	fPowerMode @ 0= AND
+	SavePowFlg @ 0= AND
+
+Action:
+
+	BALLOON: "power control" "turn power to suspend mode"
+	SavePowFlg ON           \ sets the activity flag
+	\ POWER-SUSPEND           \ turns to low power
+)#
+
+
+#       01.10.2005 23:51:31
+#	Thu 22 Dec 21:13:41 2005
+
+<%
+0 VALUE iCPUMeter
+0 VALUE iMemMeter
+CREATE sUpTime   8 ALLOT
+CREATE sMailTime 7 ALLOT
+%>
+#	Mon 15 Nov 14:20:04 2005
+#( cpu-and-mem-usage-osd
+
+0 VALUE iUpTime
+0 VALUE iMailMeter
+0 VALUE iNewCPUMeter
+0 VALUE iNewMemMeter
+0 VALUE iX
+170 VALUE iY
+
+NoLog
+
+\ Rule:	PROC-EXIST: "la.exe" 0=
+
+Action:
+
+\	CPU Utilization
+3000 TO CpuMeasurementTime
+CPU-USAGE TO iNewCPUMeter
+1000 TO CpuMeasurementTime
+iNewCPUMeter iCPUMeter <>
+IF
+	1340 iY OSD-POS
+	OSD-FONT: "System" 9 0x000000
+	S" CPU: %iCPUMeter%%%" EVAL-SUBST OSD
+
+	0x00FF00 OSD-COLOR
+	S" CPU: %iNewCPUMeter%%%" EVAL-SUBST OSD
+THEN
+iNewCPUMeter TO iCPUMeter
+
+\	MemLoad
+MemLoad TO iNewMemMeter
+iNewMemMeter iMemMeter <> 
+IF
+	1338 iY 20 + OSD-POS
+	OSD-FONT: "System" 8 0x000000
+	S" Mem: %iMemMeter%%%" EVAL-SUBST OSD
+   
+	0x00FF00 OSD-COLOR
+	S" Mem: %iNewMemMeter%%%" EVAL-SUBST OSD
+THEN
+iNewMemMeter TO iMemMeter
+
+\	UpTime
+1343 TO iX
+
+OSD-FONT: "System" 6 0x000000
+UPTIME 60 / TO iUpTime
+iUpTime 180 MOD 0=		\ every 3 hour rewrite shadow
+IF
+ 	iX iY 40 + OSD-POS
+ 	sUpTime COUNT OSD
+ 	iX iY 41 + OSD-POS
+ 	sUpTime COUNT OSD
+ 	iX 2 + iY 40 + OSD-POS
+ 	sUpTime COUNT OSD
+ 	iX 2 + iY 41 + OSD-POS
+ 	sUpTime COUNT OSD
+THEN
+ 
+iX 1 + iY 40 + OSD-POS
+sUpTime COUNT OSD
+
+0x0000FF OSD-COLOR	\	red
+S" %iUpTime 60 / 24 / Year@ Mon@ MonLength MOD%:\
+%iUpTime 60 / 24 MOD S>D <# # # #>%:\
+%iUpTime 60 MOD S>D <# # # #>%" EVAL-SUBST sUpTime PLACE
+sUpTime COUNT OSD
+)#
+
+
+# Fri 27 Jan 12:00:35 2006
+#( CLASSIC-TASK-#-proc-7z-to-IDLE
+WatchProc: "7z.exe"
+Action:
+	S" 7z.exe" IDLE_PRIORITY_CLASS PRIORITY
+)#
+
+#( CLASSIC-TASK-#-proc-MT4-to-BelowNormalPriority 
+WatchProc: "terminal.exe"
+Action:
+	S" terminal.exe" BELOW_NORMAL_PRIORITY_CLASS PRIORITY
+)#
+
+#( CLASSIC-TASK-#-proc-SpIDerNT-to-BelowNormalPriority 
+WatchProc: "spidernt.exe"
+Action:
+	2000 PAUSE
+	S" spidernt.exe" IDLE_PRIORITY_CLASS PRIORITY
+)#
+
+#( CLASSIC-TASK-#-proc-ECC-to-BelowNormalPriority 
+WatchProc: "ecc.exe"
+Action:
+	2000 PAUSE
+	S" ecc.exe" IDLE_PRIORITY_CLASS PRIORITY
+)#
+
+#( CLASSIC-TASK-#-proc-DrWeb-to-BelowNormalPriority 
+WatchProc: "drweb32w.exe"
+Action:
+	2000 PAUSE
+	S" drweb32w.exe" BELOW_NORMAL_PRIORITY_CLASS PRIORITY
+)#
+
+#( CLASSIC-TASK-#-proc-Miranda-to-BelowNormalPriority 
+WatchProc: "miranda32.exe"
+Action:
+	3000 PAUSE
+	S" miranda32.exe" BELOW_NORMAL_PRIORITY_CLASS PRIORITY
+)#
+
+
+#( High-CPU-ActiveWnd
+NoActive
+WatchWinActivate: "*"
+Action:
+
+\ 0 SP@ GetForegroundWindow GetWindowThreadProcessId DROP currentpid !
+
+\ currentpid @ lastpid @ =
+\ IF
+\   currentpid @ N>S ABOVE_NORMAL_PRIORITY_CLASS PRIORITY
+\ ELSE
+\   currentpid @ N>S ABOVE_NORMAL_PRIORITY_CLASS PRIORITY
+\   lastpid @ N>S NORMAL_PRIORITY_CLASS PRIORITY
+\   currentpid @ lastpid !
+\ THEN
+)#
+

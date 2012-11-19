@@ -1,0 +1,38 @@
+#
+# Apt-PC CRONTAB
+#
+# Classic crontab format:
+# Minutes Hours Days Months WeekDays Years Command
+
+
+#( Inet-services-start
+NoActive
+Time: 00 09 * * 1-5 *
+Action:
+	PROC-EXIST: utorrent.exe NOT
+	IF
+		StartIn: "C:\Program Files\utorrent"
+		BelowNormalPriority
+		START-APP: utorrent.exe
+		3000 PAUSE
+	THEN
+
+	PROC-EXIST: emule.exe NOT
+	IF
+		StartIn: "C:\Program Files\eMule"
+		BelowNormalPriority
+		START-APP: emule.exe
+		3000 PAUSE
+	THEN
+)#
+
+
+#( start-RA
+Rule: PROC-EXIST: r_server.exe NOT IDLE: 2400 AND
+
+Action:
+	PROC-EXIST: r_server.exe NOT
+	IF
+		START-APP: net start r_server
+	THEN
+)#

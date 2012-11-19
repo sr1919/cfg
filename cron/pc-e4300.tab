@@ -1,0 +1,119 @@
+# This file contains useful nnCron examples.
+# setting environment variables:
+
+SET CurTime=%hh%-%mm%
+SET WGETRC=c:\bin\.wgetrc
+
+# classic format examples: 
+# Minutes Hours Days Months WeekDays Years Command)
+
+# 30 1 * * * * your_app.exe
+# 0 12,17 * * * * cmd /c "E:\home\nick\Books\knut\knut\KNUT-ALL.PDF"
+# 15,20,30 * * 1,2,3,4 1-5 2000 test.cmd XXX-%TempFile%-YYY-%COMPUTERNAME%-ZZ && TIME /T >>xxx
+
+
+#( purge-tmp
+OnceADay
+Action:
+	BALLOON: "Info" "purging tmp folder..."
+	PURGE-OLD: "\tmp\trash\*.*" 30
+)#
+
+
+##############################################################################
+# Check internet mail example. This task reports, if there is new mail is 
+# in your mailbox
+
+#( check-new-mail
+VARIABLE prev-pop3-cnt
+Rule:
+    \ read old counter from file  
+    PAD 10 S" pop3cnt.txt" FREAD S>NUM prev-pop3-cnt !
+    \ check mail
+    POP3-CHECK: serv name pass
+    DUP DUP 0> prev-pop3-cnt @ <> AND
+    IF prev-pop3-cnt ! 
+        \ write new counter to file
+        FILE-WRITE: pop3cnt.txt "%prev-pop3-cnt @%"
+        TRUE ELSE DROP FALSE 
+    THEN
+   Action:
+        MSG: "You have new mail."
+)#
+
+
+##############################################################################
+# WatchHotKey & WIN-TO-TRAY
+# This task minimizes active window into system tray on 'Alt+Ctrl+t' 
+# keystroke. Make sure that plug-in 'win2tray.spf' is loaded.
+
+#( Minimize2Tray
+WatchHotKey: "@^t"
+Action:
+    WIN-TO-TRAY: %GetForegroundWindow%
+)#
+
+
+##############################################################################
+# Turning off the monitor.
+
+#( Power_saving
+NoActive
+600 CONSTANT IdleTime       \ idle time constant in seconds
+VARIABLE SaveMonFlg         \ activity flag
+Rule: 
+    IdleTime IDLE DUP 0= IF SaveMonFlg OFF THEN
+    PROC-EXIST: DivX_Player.exe 0= AND    \ don't turn off the monitor, 
+    PROC-EXIST: FlyVCD.exe 0= AND         \ if a video player is active 
+    PROC-EXIST: microdvd.exe 0= AND
+    SaveMonFlg @ 0= AND
+Action:
+    SaveMonFlg ON           \ sets the activity flag
+    MONITOR-LOW             \ turns the monitor to low power state
+    IdleTime 1000 * PAUSE   \ waits for 2nd interval 
+    IdleTime 3 * 2 / IDLE IF MONITOR-OFF THEN  \ turns the monitor off
+)#
+
+
+#( send-to-picasa
+\ sending all the files in directory  "c:\xxx" to my picasa account
+
+\ NoActive
+
+: dir S" c:\doc\img\!ToPicasa" ;
+: images S" *.jpg" ;
+
+: mailer S" c:\bin\SendEmail.exe" ;
+: from   S" srs.mail.bot@gmail.com" ;
+: to     S" sr1919.images@picasaweb.com" ;
+: login  S" srs.mail.bot" ;
+: pass   S" sr-19-gmail-bot" ;
+: smtp   S" smtp.gmail.com" ;
+
+WatchFile: %dir%
+WATCH-CHANGE-FILE-NAME
+
+Action:
+    PAUSE: 5000
+    FOR-FILES: "%dir%\%images%"
+
+\	Low-priority
+\	S" %FOUND-FULLPATH%" ADD-ATTACH \ прикрепить файл
+\	S" " \ текст
+\	S" " \ тема
+\	S" " \ to:
+\	S" " \ from:
+\	S" " \ login
+\	S" " \ pass
+\	S" " 25 \ smtp_server port
+\	SMTP-SEND&ATTACH ?DUP IF BALLOON: "" "%FOUND-FULLPATH% sending error: %0 esPICK%" ELSE BALLOON: "" "%FOUND-FULLPATH% sent ok" THEN
+
+	StartIn: "c:\bin" 
+	ShowMinimized BelowNormalPriority
+	START-APPW: %mailer% -f %from% -t %to% -a %FOUND-FULLPATH% -m [photo] -s %smtp% -xu %login% -xp %pass%
+\	BALLOON: "" "%mailer% -f %from% -t %to% -a %FOUND-FULLPATH% -s %smtp% -xu %login% -xp %pass%"
+	ExitCodeProc 0 <> IF BALLOON: "" "%FOUND-FULLPATH% sending error: %0 esPICK%" ELSE BALLOON: "" "%FOUND-FULLPATH% sent ok" THEN
+
+        FILE-DELETE: "%FOUND-FULLPATH%"
+    ;FOR-FILES
+)#

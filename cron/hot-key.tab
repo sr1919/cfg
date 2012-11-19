@@ -1,0 +1,58 @@
+#
+# Hot-Key CRONTAB FILE 
+#
+# Classic crontab format:
+# Minutes Hours Days Months WeekDays Years Command
+
+
+#       11.10.2005 10:57:14
+#( power-off
+
+WatchHotKey: "^+p"  \ 'CTRL + SHIFT + P'
+
+Action:
+
+        BALLOON: "power control" "power off"
+        BEEP: 50 500
+        POWEROFF
+)#
+
+
+#( defrag
+
+WatchHotKey: "^+d"
+
+Action:
+        BEEP: 50 500
+        StartIn: "C:\WINXP\system32"
+        START-APP: defrag.exe c: -f -v
+)#
+
+
+#( suspend-mode
+
+NoActive
+
+WatchHotKey: "^+s"  \ 'CTRL + SHIFT + S'
+
+Action:
+
+        0 N>S TO fPowerMode
+        BALLOON: "power control" "suspend mode (%fPowerMode%)"
+        BEEP: 50 500
+        POWER-SUSPEND   \ turns to low power
+)#
+
+
+#( normal-mode
+
+WatchHotKey: "^+n"  \ 'CTRL + SHIFT + N'
+
+Action:
+
+        1 N>S TO fPowerMode
+        BALLOON: "power control" "always on mode (%fPowerMode%)"
+        BEEP: 50 500
+)#
+
+#       03.11.2005 23:11:08

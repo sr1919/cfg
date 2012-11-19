@@ -1,0 +1,204 @@
+#
+# tech-pc CRONTAB FILE 
+#
+# Classic crontab format:
+# Minutes Hours Days Months WeekDays Years Command
+
+
+#( purge-drop-box
+Time: 0 19 * * * *
+Action:
+\	StartIn: "%ProgramFiles%\Dropbox"
+\	START-APPW: Dropbox.exe /unlink
+
+	PROC-CLOSE: Dropbox.exe
+	
+	StartIn: "\bin"
+	START-APPW: sdelete.exe -s -q "d:\docs\My Dropbox"
+)#
+
+
+#( local-StartUp
+Time: START-TIME
+Action:
+
+PROC-EXIST: r_server.exe NOT
+IF
+    START-APP: net start r_server
+THEN
+
+PROC-EXIST: "HooNetMeter.exe" NOT
+IF
+	StartIn: "%ProgramFiles%\HooTech\NetMeter"
+	BelowNormalPriority
+	START-APP: HooNetMeter.exe
+THEN
+)#
+
+
+#( remind-at-11-55
+Time: 55 11 * * 1-5 *
+Action:
+	THINT: "reminder: 11:55 !" 3
+)#
+
+
+#( start-r-mode
+Time: 30 19 * * * *
+Action:
+
+PROC-EXIST: r_server.exe NOT
+IF
+    START-APP: net start r_server
+THEN
+)#
+
+
+#( fleshka_backup
+
+\ : VOL-EXIST? ( a u -- letter/0)
+\	[CHAR] Z 1+ [CHAR] C
+\	DO I GET-VOL-NAME 2OVER COMPARE 0=
+\		IF 2DROP I UNLOOP EXIT THEN
+\	LOOP
+\ 2DROP 0
+\ ;
+
+NoActive
+
+fVAR insert_flash
+CREATE flash_drive 2 ALLOT
+Action:
+\ проверка диска с меткой FLESHKA
+\ S" SR-4G" VOL-EXIST? ?DUP
+IF
+	SP@  1 flash_drive PLACE
+	DROP
+		RE-MATCH: "%insert_flash%" "/off/ix"
+		IF
+			THINT: "Диск FLESHKA Подключен к %QUOTE%%flash_drive COUNT%:\%QUOTE% ..." 7
+			S" on" TO insert_flash
+	THEN
+THEN
+)#
+
+#( FlashDiskInserted
+WatchDrive: "G"
+Action:
+	THINT: "drive G: found" 2
+
+	PROC-EXIST: r_server.exe
+	IF
+	    START-APP: net stop r_server
+	THEN
+
+	PROC-EXIST: skype.exe NOT
+	IF
+		StartIn: "%ProgramFiles%\skype"
+		START-APPW: PortableSkype.exe /nosplash /minimized
+		PAUSE: 1000
+	THEN
+
+	PROC-EXIST: miranda32.exe NOT
+	IF
+		StartIn: "%ProgramFiles%\miranda"
+		START-APPW: miranda32.exe
+		PAUSE: 1000
+	THEN
+
+	THINT: "twitter ?" 2
+
+	PAUSE: 20000
+	PROC-EXIST: LaunchPad.exe
+	IF
+		PROC-CLOSE: LaunchPad.exe
+	THEN
+)#
+
+#( FlashDiskEjected
+WatchDriveRemove: "G"
+Action:
+	THINT: "G ejected: prepare to go home..." 3
+\	PAUSE: 3000
+
+	PROC-EXIST: Far.exe
+	IF
+		PROC-CLOSE: Far.exe
+		PAUSE: 500
+	THEN
+
+	PROC-EXIST: skype.exe
+	IF
+		PROC-CLOSE: skype.exe
+		PAUSE: 500
+	THEN
+
+	PROC-EXIST: miranda32.exe
+	IF
+		PROC-CLOSE: miranda32.exe
+		PAUSE: 500
+	THEN
+
+	PROC-EXIST: twhirl.exe
+	IF
+		PROC-CLOSE: twhirl.exe
+		PAUSE: 500
+	THEN
+
+	PROC-EXIST: googletalk.exe
+	IF
+		PROC-CLOSE: googletalk.exe
+		PAUSE: 500
+	THEN
+
+	PROC-EXIST: LastFM.exe
+	IF
+		PROC-CLOSE: LastFM.exe
+		PAUSE: 500
+	THEN
+
+	PROC-EXIST: r_server.exe NOT
+	IF
+	    START-APP: net start r_server
+	THEN
+
+	PAUSE: 3000
+	TRAY-REFRESH
+)#
+
+# Sun 10 Dec 18:00:22 2006
+#( proc-set-vcc-high-priority
+WatchProcStop: "cl.exe"
+WatchProcStop: "LINK.EXE"
+Action:
+	S" cl.exe" ABOVE_NORMAL_PRIORITY_CLASS PRIORITY
+	S" LINK.EXE" ABOVE_NORMAL_PRIORITY_CLASS PRIORITY
+)#
+
+
+#( put-BarCode-22502
+
+NoActive
+Action:
+
+\ PROC-EXIST: "notepad.exe" NOT IF    START-APP: notepad.exe   1000 PAUSE THEN
+\ WIN-ACTIVATE: "InXpector*"
+\ WIN-ACTIVATE: "*Notepad"
+500 PAUSE
+
+SEND-KEYS-DELAY: 10 0
+
+WIN-SEND-KEYS: "/InXpector*/i" "007091813002122502001042{ENTER}"
+
+\ 007091808002711102010030- grinded meat
+\ 020070918002401008
+\ 007091809002711102010030
+\ 020070918002301001
+\ 020070918002300509
+\ 020070918002301001
+\ 007091801007311215004019
+\ 007091806007411107005034
+\ 020070918003401007
+\ 020070918003901002
+\ 007091813002122502001042
+)#

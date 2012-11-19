@@ -1,0 +1,5 @@
+; disable usb autorun
+REGEDIT4
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\IniFileMapping\Autorun.inf]
+@="@SYS:DoesNotExist" 

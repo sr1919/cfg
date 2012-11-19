@@ -1,0 +1,305 @@
+#
+# I-net CRONTAB
+#
+# Classic crontab format:
+# Minutes Hours Days Months WeekDays Years Command
+
+<%
+fVAR fSyncNo
+
+: stop-inet-appz
+    PAUSE: 60000
+    PROC-EXIST: rasphone.exe NOT PROC-EXIST: btwdins.exe ONLINE? NOT AND AND
+    IF
+        SWHide
+        START-APP: net stop btwdins
+\        START-APP:  net stop TrafSvc START-APP:  KillMonitor.exe
+        PROC-CLOSE: drwu.exe
+        PROC-CLOSE: dumeter.exe
+       	PROC-CLOSE: flashget.exe
+        PROC-CLOSE: handycache.exe
+        PROC-EXIST: starcraft.exe NOT 
+        IF
+            TMSG: "U may remove BT adapter now!" 3
+            PAUSE: 2000
+            TRAY-REFRESH
+        THEN
+    THEN
+;
+%>
+
+
+#( CLASSIC-TASK-#-HandyCache-start
+NoActive
+WatchProc: "firefox.exe"
+
+Action:
+    PROC-EXIST: handycache.exe NOT
+    IF
+        StartIn: "C:\Program Files\handycache" 
+        START-APP: handycache.exe
+    THEN
+)#
+
+
+#( CLASSIC-TASK-#-HandyCache-stop
+NoActive
+WatchProcStop: "firefox.exe"
+
+Action:
+        PROC-CLOSE: handycache.exe
+)#
+
+
+#( online--adjust-time
+
+NoActive
+
+\ time.nist.gov, clock.psu.edu, finch.cc.ukans.edu, ntp.css.gov, ntp.lth.se, ntp.maths.tcd.ie, ntp0.cornell.edu, ntp-1.ece.cmu.edu ntp-2.ece.cmu.edu, ntp2a.mcc.ac.uk, Rolex.PeachNet.EDU, salmon.maths.tcd.ie, sundial.columbia.edu, time.nrc.ca, timelord.uregina.ca, timex.cs.columbia.edu, Timex.PeachNet.EDU
+\ clock.via.net, time-a.nist.gov, time-b.nist.gov, time-a.timefreq.bldrdoc.gov, time-b.timefreq.bldrdoc.gov, time-c.timefreq.bldrdoc.gov, utcnist.colorado.edu, time-nw.nist.gov, nist1.symmetricom.com, nist1-dc.glassey.com, nist1-ny.glassey.com, nist1-sj.glassey.com, nist1.aol-ca.truetime.com, nist1.aol-va.truetime, nist1.columbiacountyga.gov, ntp.landau.ac.ru, ntp.psn.ru, sign.chg.ru, bgm.rosprint.net, crocus.gamma.ru, news.gamma.ru, mail.gamma.ru, ntp0.zenon.net, news.demos.su
+
+0 VALUE hh0
+0 VALUE mm0
+0 VALUE ss0
+0 VALUE srv_hh
+0 VALUE srv_mm
+0 VALUE srv_ss
+
+\ 144000 VALUE iTimeSyncDelay	\	in sec = 2*20h*60m*60s
+
+: time-log S" log\timesync.log" ;
+: time-flag S" etc\timesync.flag" ;
+: time-server S" time.nist.gov" ;
+
+\ Time: * */2 * * * *
+OnceADay
+Rule: ONLINE?
+
+Action:
+
+    fSyncNo S>NUM 9 >
+    IF
+	FT-CUR FILE-WTIME: %time-flag% FTIME- 6 60 60 * * <
+	IF
+		LOG: %time-log% "  %DD%.%MMM%.%YYYY%  (fSyncNo > 9) & (delay < 6 hour)"
+		EXIT
+	THEN
+	1 N>S TO fSyncNo
+	LOG: %time-log% "  %DD%.%MMM%.%YYYY%  run cycle again..."
+    THEN
+
+    PAUSE: 10000
+    GET-CUR-TIME
+    Hour@ TO hh0 Min@ TO mm0 Sec@ TO ss0
+    TP-SYNC: %time-server%
+    <time> @ UT>TIME 2DROP DROP TO srv_hh TO srv_mm TO srv_ss
+    TP-SYNC-RESULT 0<>
+    IF
+        LOG: %time-log% ". %DD%.%MMM%.%YYYY%    #%fSyncNo S>NUM% %hh0%:%mm0%:%ss0% %TP-SYNC-DELAY% (%srv_hh%:%srv_mm%:%srv_ss%)"
+        fSyncNo S>NUM 1 + N>S TO fSyncNo
+        fSyncNo S>NUM 9 <
+        IF
+            CLEAR-ONCE
+        THEN
+    ELSE
+        GET-CUR-TIME
+        1 N>S TO fSyncNo
+        FILE-WRITE: %time-flag% ""
+        LOG: %time-log% "+ %DD%.%MMM%.%YYYY%  %hh0%:%mm0%:%ss0% -> %hh%:%mm%:%ss%  %TP-SYNC-DELAY% - ok"
+        PLAY-SOUND: "c:\bin\sound\na-na-na.wav"
+    THEN
+)#
+
+#  Wed 04 Jul 13:11:48 2007
+#  Mon 25 Sep 11:42:55 2006
+#  Mon 10 Jul 13:01:47 2006
+#  Fri 26 May 12:48:43 2006
+#  Tue 28 Feb 13:32:35 2006
+
+#( online--drweb-update
+
+: drw-flag S" %ProgramFiles%\DrWeb\drwtoday.vdb" EVAL-SUBST ; 
+
+6 VALUE iDrwuUpdateDelay			\ 0 in hour
+
+\ Time: * */2 * * * *
+NoActive
+OnceADay
+\ Rule: ONLINE?
+
+Action:
+
+\    WDay@ 5 >
+\    IF
+\    	5 24 * TO iDrwuUpdateDelay		\ on weekend 
+\    THEN
+
+    FT-CUR FILE-WTIME: %drw-flag% FTIME- 3600 / iDrwuUpdateDelay >
+    IF
+        PAUSE: 5000
+        StartIn: "%ProgramFiles%\DrWeb"
+        START-APPW: drwebupw.exe
+        ExitCodeProc 0<>
+        IF 
+            CLEAR-ONCE
+\                PLAY-SOUND: "c:\bin\sound\error2.wav"
+        THEN
+    THEN
+)#
+
+
+#( online--cureit-update
+
+: src S" http://www.freedrweb.com/download+cureit/gr/" ;
+: dest-dir S" c:\tmp\cureit" ;
+: file S" cureit.exe" ;
+: tmp-dir S" c:\tmp\tmpdrw" ;
+: log S" \tmp\log\wget.log" ;
+
+\ Time: * */2 * * * *
+\ NoActive
+OnceADay
+RunMissed
+Rule: HOST-EXIST: "www.google.com"
+\ Rule: ONLINE?
+
+Action:
+
+	DIR-CREATE: "%dest-dir%"
+	DIR-CREATE: "%tmp-dir%"
+
+	LOG: "%log%" "%YYYY%.%MM%.%DD% %hh%:%mm%:%ss% check %src%"
+	ShowNormal
+	StartIn: "%tmp-dir%\"
+	START-APPW: c:\bin\wget.exe %src%
+
+    FOR-FILES: "%tmp-dir%\*.exe"
+		PAUSE: 2000
+		LOG: "%log%" "%YYYY%.%MM%.%DD% %hh%:%mm%:%ss% updated: %FOUND-FULLPATH%"
+		FILE-DELETE: "%dest-dir%\%file%"
+		FILE-RENAME: "%FOUND-FULLPATH%" "%dest-dir%\%file%"
+
+		LOG: "%log%" "%YYYY%.%MM%.%DD% %hh%:%mm%:%ss% updated: %dest-dir%\%file%"
+		THINT: "cure-it updated: %dest-dir%\%file%" 4
+    ;FOR-FILES
+	
+	PURGE-OLD: "%tmp-dir%\*" -1
+	DIR-DELETE: "%tmp-dir%\"
+)#
+
+
+#( online--check-new-version
+
+\  Mon  2 Mar 
+\  Thu 30 Nov 17:51:12 2006
+\  Mon 02 Jan 18:40:28 2006
+\  Fri 05 Dec 17:04:37 2008
+
+: url1 S" http://drwu.narod.ru/index.html" ;
+: url2 S" http://www.nncron.ru/history.txt" ;
+: url3 S" http://build.chromium.org/buildbot/snapshots/chromium-rel-xp/LATEST" ;
+
+NoActive
+OnceAWeek
+\ Rule: ONLINE?
+
+Action:
+
+\    PAUSE: 5000
+
+    HTTP-CHANGED: %url1%
+    IF
+	HTTP-GET: %url1% 0=
+	IF
+		THINT: "drwu update found" 2
+		S" \tmp\drwu.html" FWRITE
+		START-APP: "c:\tmp\drwu.html"
+		PAUSE: 2000
+	THEN
+    THEN
+
+\    nnCron NEW-VERSION
+
+    HTTP-CHANGED: %url2%
+    IF
+        HTTP-GET: %url2% 0=
+        IF
+		THINT: "nncron new history found" 2
+		S" \tmp\nn-history.txt" FWRITE
+		START-APP: "c:\tmp\nn-history.txt"
+		PAUSE: 2000
+        THEN
+    THEN
+
+    HTTP-CHANGED: %url3%
+    IF
+        HTTP-GET: %url3% 0=
+        IF
+		THINT: "crome update found" 2
+		S" \tmp\chromium.txt" FWRITE
+		START-APP: "c:\tmp\chromium.txt"
+		PAUSE: 2000
+        THEN
+    THEN
+)#
+
+
+#( online--check-mail-on-connection
+\  Mon 10 Jul 12:59:08 2006
+\      09 Jul 17:46:00 2006
+\      22 Jun 00:17:00 2006
+\      20 May 18:03:00 2006
+
+NoActive 
+
+0 VALUE iCurrDelay
+0 VALUE iMailTimeDelay
+: mail-flag S" etc\mail.flag" ;
+
+WatchConnect
+
+Action:
+
+    240 TO iMailTimeDelay			\ on workdays
+    WDay@ 5 >
+    IF
+            300 TO iMailTimeDelay		\ on weekend +1h
+    THEN
+
+    FT-CUR FILE-WTIME: %mail-flag% FTIME- 60 / TO iCurrDelay	\ in min
+    iCurrDelay iMailTimeDelay >
+    IF
+        BEEP: 50 500
+        TQUERY: "Mail has been checked %iCurrDelay%min ago.%crlf%  Check now? [Yes, 1 sec]." 1 Yes
+        IF
+            FILE-WRITE: %mail-flag% ""
+            StartIn: "C:\Program Files\The Bat!"
+            START-APP: thebat.exe /CHECK*GMail /SENDALL /NOLOGO /MINIMIZE /SMARTEXIT
+            S" MAIL check-up - ok" CRON-LOG \ %hh%:%mm%:%ss%
+        ELSE
+            S" MAIL exit - manual escape" CRON-LOG
+        THEN
+    ELSE
+        S" MAIL delay=%iCurrDelay%<%iMailTimeDelay%(min)" CRON-LOG
+    THEN
+)#
+
+
+#( CLASSIC-TASK-#-wget-watch-clipboad
+
+: WGET-PAT S" /(http)|(ftp):\/\/[^ ]+?\.(7z)|(zip)|(gz)|(rar)|(jpeg)|(jpg)|(exe)|(msi)|(pdf)|(chm)|(swf)|(mp3)|(djvu)|(txt)|(vkp)|(mar)|(iso)/i" ;
+WatchClipboard: *
+Rule: RE-MATCH: %CLIPBOARD% %WGET-PAT%
+
+Action:
+RE-ALL: %CLIPBOARD% %WGET-PAT%
+QUERY: "Download %$0%?"
+IF
+    LOG: "\tmp\.log" "%YYYY%.%MM%.%DD% %hh%:%mm%:%ss% %$0%"
+    ShowNormal
+    StartIn: c:\tmp\
+    START-APP: c:\bin\wget.exe %$0%
+    CLIPBOARD: ""
+THEN
+;RE-ALL
+)#
